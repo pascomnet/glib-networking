@@ -133,6 +133,10 @@ msg "Concatenating client certificate and private key into a single file"
 cat client.pem > client-and-key.pem
 cat client-key.pem >> client-and-key.pem
 
+msg "Concatenating the full client chain into a single file"
+cat ca.pem > client-and-key-fullchain.pem
+cat client-and-key.pem >> client-and-key-fullchain.pem
+
 # It is not possible to specify the start and end date using the "x509" tool.
 # It would be better to use the "ca" tool. Sorry!
 msg "Creating client certificate (past)"
@@ -219,6 +223,16 @@ msg "Updating CA Root files"
 msg "Updating test expectations"
 ./update-test-database.py ca.pem ../file-database.h
 ./update-certificate-test.py server.pem ../certificate.h
+
+#######################################################################
+### Generate PKCS #12 format copies for testing
+#######################################################################
+
+msg "Generating PKCS #12 files"
+openssl pkcs12 -in client-and-key.pem -export -out client-and-key.p12 -nodes -passout 'pass:' -name "No password"
+openssl pkcs12 -in client-and-key.pem -export -out client-and-key-password.p12 -nodes -passout 'pass:1234' -name "With Password"
+openssl pkcs12 -in client-and-key.pem -export -out client-and-key-password-enckey.p12 -passout 'pass:1234' -name "With Password and encrypted privkey"
+openssl pkcs12 -in client-and-key-fullchain.pem -export -out client-and-key-fullchain.p12 -passout 'pass:' -name "Fullchain"
 
 #######################################################################
 ### Cleanup
